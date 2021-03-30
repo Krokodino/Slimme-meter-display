@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ESP32 Web Server</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="data:,">
+	<link rel="icon" href="data:images">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<style>
+		table, th, td {
+			border: 1px solid black;
+			font-family: Arial;
+			
+		}
+	</style>
+</head>
+<body>
+
+	<div class="topnav">
+		<a href="./index.html">Home</a>
+		<a class="active" href="./settings.html">Settings</a>
+		<a href="./log.html">Logs</a>
+		<a href="./about.html">About</a>
+	</div>
+
+	<h1>ESP32 Settings</h1>
+	<form action="/get">
+		<label for="ssid">SSID: (max 24 char)</label><br>
+		<input type="text" id="ssid" name="SSID"><br><br>
+		<label for="pass">Password: (max 24 char)</label><br>
+		<input type="password" id="pass" name="PASS"><br><br>
+		<label for="host">Hostname: (max 24 char)</label><br>
+		<input type="text" id="host" name="HOST"><br><br>
+
+		<label for="protocol">Protocol:</label>
+		<select id="protocol" name="PROTOCOL">
+			<option value=""></option>
+			<option value="DSMR5.0">DSMR5.0</option>
+			<option value="DSMR2.2">DSMR2.2</option>
+		</select>
+
+<!--
+		SSID: 		<br><input type="text" name="SSID"> (max 24 char) <br><br>
+		Password: 	<br><input type="password" name="PASS"> (max 24 char) <br><br>
+		Hostname: 	<br><input type="text" name="host"> (max 24 char) <br><br><br>
+		Serial connection	<br>
+		Baudrate:	<br><input type="text" name="baud"> 
+		AP_ssid:	<br><input type="text" name="SSID_AP"> (max 24 char) <br><br>
+		AP_password:<br><input type="password" name="pass_AP"> (max 24 char) <br><br>
+-->
+
+		<br><br><input class="button" type="submit" value="Submit">
+
+</body>
+</html>
