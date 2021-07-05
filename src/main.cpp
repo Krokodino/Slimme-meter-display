@@ -391,7 +391,7 @@ void table_data(const char * use, const char * back, const char * uLowT, const c
     oled.clear();
     int fontHeight = oled.get_font_height();
     int xDataOff = 50;
-    //oled.select_font(1);
+
     oled.draw_string(0, 0, "Use", WHITE, BLACK);
     oled.draw_string(0, 9, "Back", WHITE, BLACK);
     oled.draw_string(0, 18, "Used L", WHITE, BLACK);
@@ -399,7 +399,6 @@ void table_data(const char * use, const char * back, const char * uLowT, const c
     oled.draw_string(0, 36, "Back L", WHITE, BLACK);
     oled.draw_string(0, 45, "Back H", WHITE, BLACK);
     oled.draw_string(0, 54, "Gas", WHITE, BLACK);
-
 
     oled.draw_string(xDataOff, 0, use, WHITE, BLACK);
     oled.draw_string(xDataOff, 9, back, WHITE, BLACK);
@@ -704,22 +703,19 @@ unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
  
-void decodeTelegram(fs::FS &fs, const char * path)
+void decodeTelegram()
 {
 
     long tl = 0, tld = 0;
     float temp = 0;
-    //int tl = 0, tld = 0, bufpos = 0;
-
 
     if (Serial.available())
     {
         input = Serial.read();
         char inChar = (char)input;
-        // Fill buffer up to and includeing a new line (\n)
+        /* Fill buffer up to and includeing a new line (\n) */
         buffer[bufpos] = input&127;
         bufpos++;
-        //Serial.printf("Start reading data\n");
 
         if (input == '\n') 
         {   // We received a new line (data up to \n)
@@ -777,53 +773,6 @@ void decodeTelegram(fs::FS &fs, const char * path)
                 }
             }
             // Other data can be placed down here if needed
-
-            // The old way of getting the data
-            // 1-0:1.8.1 = low tarif consumption
-            // if (sscanf(buffer,"1-0:1.8.1(%ld.%ld" , &tl, &tld) == 2)
-            // {
-            //     tl *= 1000;
-            //     tl += tld;
-            //     mEVLT = tl;
-            // }
-
-            // 1-0:1.8.2 = high tarif consumption
-            // if (sscanf(buffer,"1-0:1.8.2(%ld.%ld", &tl, &tld) == 2)
-            // {
-            //     tl *= 1000;
-            //     tl += tld;
-            //     mEVHT = tl;
-            // }
-
-            // 1-0:2.8.1 = low tarif generated
-            // if (sscanf(buffer,"1-0:2.8.1(%ld.%ld", &tl, &tld) == 2)
-            // {
-            //     tl *= 1000;
-            //     tl += tld;
-            //     mETLT = tl;
-            // }
-
-            // 1-0:2.8.1 = high tarif generated
-            // if (sscanf(buffer,"1-0:2.8.2(%ld.%ld", &tl, &tld) == 2)
-            // {
-            //     tl *= 1000;
-            //     tl += tld;
-            //     mETHT = tl;
-            // }
-
-            // 1-0:1.7.0 = actual consumption
-            // if (sscanf(buffer,"1-0:1.7.0(%ld.%ld", &tl, &tld) == 2)
-            // {
-            //     mEAV = (tl*100) + tld;
-            // }
-
-            // 1-0:2.7.0 = actual generated
-            // if (sscanf(buffer,"1-0:2.7.0(%ld.%ld", &tl, &tld) == 2)
-            // {
-            //     mEAT = (tl*100) + tld;
-            // }
-
-
 
             for (int i=0; i<75; i++)
             {
@@ -1031,14 +980,10 @@ void timer_init()
 
 void board_init()
 {
-    pinMode(led_on_chip, OUTPUT);
-
     pinMode(PIN_BUTTON, INPUT_PULLDOWN);
     pinMode(BOOT_BUT, INPUT_PULLDOWN);
 
-    attachInterrupt(PIN_BUTTON, buttonpressed, RISING);
-    //attachInterrupt(BOOT_BUT, boot_button, RISING);
-    
+    attachInterrupt(PIN_BUTTON, buttonpressed, RISING);    
 }
 
 void memory_init()
@@ -1125,13 +1070,13 @@ void webserver_init()
         if (request->getParam("HOST")->value() != emptyString)
             write_eeprom(hostAdd, request->getParam("HOST")->value());
         if (request->hasParam("PROTOCOL"))
-            temp = "DSMR5.0";//request->getParam("PROTOCOL")->value();
+            temp = request->getParam("PROTOCOL")->value();
             if (temp == "DSMR5.0");
             {
                 Serial.end();
                 Serial.begin(115200, SERIAL_8N1);
             }
-            temp = "DSMR2.2";
+            //temp = "DSMR2.2";
             if (temp == "DSMR2.2");
             {
                 Serial.end();
@@ -1200,8 +1145,7 @@ void sd_init()
 /* MAIN CODE */
 
 void setup(){
-    Serial.begin(115200);       // Starts default serial connection which is also DSMR5.0
-
+    Serial.begin(115200, SERIAL_8N1, 2, 14);       // Starts default serial connection which is also DSMR5.0
     
     timer_init();
     board_init();
@@ -1210,7 +1154,7 @@ void setup(){
     wifi_init();
     webserver_init();
     ota_init();
-
+    sd_init();
 
     if(!SD.begin()){
         Serial.println("Card Mount Failed");
@@ -1275,7 +1219,7 @@ void loop(){
         lastTime = millis();
 
         Serial.printf("Alle data: %s, %s, %s, %s, %s, %s, %s\n", &mEVLT, &mEVHT, &mETLT, &mETHT, &mEAV, &mEAT, &mG);
-        // logData(SD, "/MeterLog.txt");
+        logData(SD, "/MeterLog.txt");
 
         // Reset the variables for the next run
         // mEVLT = "";
@@ -1286,7 +1230,7 @@ void loop(){
         // mEAT = "";
         // mG = "";
     }
-    decodeTelegram(SD, "/MeterLog.txt");
+    decodeTelegram();
     showData(mEAV.c_str(), mEAT.c_str(), mEVLT.c_str(), mEVHT.c_str(), mETLT.c_str(), mETHT.c_str(), mG.c_str());
 
 }
